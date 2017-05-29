@@ -1,0 +1,50 @@
+---
+- name: getting percona keys
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 8507EFA5
+    state: present
+
+- name: add percona repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - "deb http://repo.percona.com/apt {{ ansible_distribution_release }} main"
+    - "deb-src http://repo.percona.com/apt {{ ansible_distribution_release }} main"
+
+- name: ensuring mysql is removed
+  apt:
+    name: "{{ item }}"
+    state: absent
+    autoremove: yes
+  with_items:
+    - mysql-client
+    - mysql-server
+
+- name: installing mysql server packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - percona-server-server-5.7
+    - python-mysqldb
+
+- name: copying mysql config file
+  template:
+    src: etc/mysql/conf.d/mysqld.cnf
+    dest: /etc/mysql/conf.d/mysqld.cnf
+  notify: restart mysql
+
+- name: grant all permissions
+  mysql_user:
+    name: ghost
+    host: "%"
+    priv: "*.*:INSERT,ALTER,CREATE,DELETE,DROP,INDEX,LOCK TABLES,SELECT,TRIGGER,UPDATE,REPLICATION CLIENT,REPLICATION SLAVE"
+    state: present
+
+- name: create database
+  mysql_db:
+    name: ghost-data
+    state: present

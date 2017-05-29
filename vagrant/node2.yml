@@ -1,0 +1,5 @@
+---
+- hosts: all
+  roles:
+    - role: ghost-mysql
+      server_id: 2

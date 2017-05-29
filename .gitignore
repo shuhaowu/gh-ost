@@ -2,3 +2,8 @@
 /bin/
 /libexec/
 /.vendor/
+
+
+# Downstream modification
+/.vagrant/
+/vagrant/*.retry
